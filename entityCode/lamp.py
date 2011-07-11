@@ -11,10 +11,10 @@ def toggle(instance):
         print w.value
         return jsonMessages.createJSONResponse(
                 changeSprite= {'instance': str(instance.id),
-                                'newSprite': '/static/pj/lampon.png' })
+                                'newSprite': 'on' })
     elif (v is True):
         w.value = False
         w.save()
         return jsonMessages.createJSONResponse(
                 changeSprite= {'instance': str(instance.id),
-                                'newSprite': '/static/pj/lamp.png' })
+                                'newSprite': 'off' })
