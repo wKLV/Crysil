@@ -14,6 +14,9 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
-	(r'^game/$', 'game.views.index'),
-    (r'^game/entity=(?P<entity>\w+)/trigger=(?P<trigger>\w+)', 'game.views.response')
+    (r'^index/$', 'crysil.views.index'),
+    (r'^accounts/', include('registration.urls')),
+	(r'^game/$', 'game.views.game'),
+    (r'^game/entity=(?P<entity>\w+)/trigger=(?P<trigger>\w+)', 'game.views.response'),
+    (r'^editor/$', 'game.views.editor')
 )

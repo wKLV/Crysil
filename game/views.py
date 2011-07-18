@@ -20,7 +20,7 @@ def importCode(code, name, add_to_sys_modules=False):
     exec code in module.__dict__
     return module
 
-def index(request):
+def game(request):
     t = loader.get_template('game/game.html')
     c = Context({})
     return HttpResponse(t.render(c))
@@ -40,4 +40,7 @@ def response(request, entity, trigger):
         i = True
     messages += "}"
     return HttpResponse(messages, mimetype='application/json')
+
+def editor(request):
+    return HttpResponse(loader.get_template('edit/map.html').render(Context({})))
     

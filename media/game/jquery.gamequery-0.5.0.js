@@ -707,7 +707,8 @@
                 sizey:          32,
                 posx:			0,
                 posy:			0,
-                className: "tileType_"
+                className: "tileType_",
+                onclick: function(x,y) {}
             }, options);
             className = options.className;
             //var newSpriteElem = "<div id='"+sprite+"' style='position: absolute; display: block; overflow: hidden; height: "+options.height+"px; width: "+options.width+"px; left: "+options.posx+"px; top: "+options.posy+"px; background-position: 0px 0px;' />";
@@ -755,6 +756,7 @@
                                 var newTile = $("#tile_"+name+"_"+i+"_"+j);
                                 newTile.removeClass("sprite");
                                 newTile.addClass(className+(tileDescription(i,j)));
+                                newTile.attr("onclick", options.onclick+"("+parseInt(i+1)+","+parseInt(j+1)+")");
                                 newTile[0].gameQuery.animationNumber = tileDescription(i,j)-1;
                             } else {
                                 // for multi-animation:
@@ -768,6 +770,7 @@
                                 newTile.setAnimation(tileDescription(i,j)-1);
                                 newTile.removeClass("sprite");
                                 newTile.addClass(className+(tileDescription(i,j)));
+                                newTile.attr("onclick", options.onclick+"("+parseInt(i+1)+","+parseInt(j+1)+")");
                             }
                         }
             		}	
@@ -800,6 +803,7 @@
                                 newTile.setAnimation(tileDescription[i][j]-1);
                                 newTile.removeClass("active");
                                 newTile.addClass(className+(tileDescription[i][j]));
+                                newTile.attr("onclick", options.onclick+"("+parseInt(i+1)+","+parseInt(j+1)+")");
                             }
                         }
             		}	

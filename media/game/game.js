@@ -3,8 +3,7 @@ var PLAYGROUND_WIDTH    = 790;
 var PLAYGROUND_HEIGHT   = 550;
 var REFRESH_RATE        = 15;
 
-
-var createCollisons = function(){
+var collisions = function(){
 	 walls= {};
 	 tiles = {};
 	 entities = {};
@@ -37,11 +36,9 @@ var createCollisons = function(){
 		 	else return true;
 		 }
 	 };
-};
+}();
 
-collisions = new createCollisons();
-
-var createPJPosition = function(){
+var pjPosition = function(){
 	posx=1; posy=1; dir = 0;
 	getNewPosition = function(incX, incY, aut){
 		if(dir === 135 || dir === 180 || dir === 225)
@@ -93,14 +90,14 @@ var createPJPosition = function(){
 			else return false;
 		},
 		getLookedPosition : function(){
-			if (dir ===0) return (posx+1, posy);
-			else if (dir===45) return (posx+1, posy+1);
-			else if (dir===90) return (posx, posy+1);
-			else if (dir===135) return (posx-1, posy+1);
-			else if (dir===180) return (posx-1, posy);
-			else if (dir===225) return (posx-1, posy-1);
-			else if (dir===270) return (posx, posy-1);
-			else if (dir===315) return (posx+1, posy-1);
+			if (dir ===0) return {x:posx+1, y:posy};
+			else if (dir===45) return {x:posx+1, y:posy-1};
+			else if (dir===90) return {x:posx, y:posy-1};
+			else if (dir===135) return {x:posx-1, y:posy-1};
+			else if (dir===180) return {x:posx-1, y:posy};
+			else if (dir===225) return {x:posx-1, y:posy+1};
+			else if (dir===270) return {x:posx, y:posy+1};
+			else if (dir===315) return {x:posx+1, y:posy+1};
 			else return null;
 		},
 		tryMoveCharacter: function(direction){
@@ -116,10 +113,9 @@ var createPJPosition = function(){
 			else return null;
 		}
 	}
-};
-pjPosition = new createPJPosition();
+}();
 
-var createAnimations = function(){
+var animations = function(){
 	anims = {};
 	tileAnims = new Array();
 	return { 
@@ -157,10 +153,32 @@ var createAnimations = function(){
 			return tileAnims
 		}
 	}
-};
+}();
 
-animations = new createAnimations();
-
+var entities = function(){
+	entities = {};
+	entitiesPos = {};
+	return {
+		add : function(entity, entityName, animation, posx, posy){
+			$("#actors").addSprite(entityName, {animation: animation, posx:(entity.posx-1)*32, posy:(entity.posy-1)*32 });
+			collisions.addEntity(entity.posx, entity.posy);
+			entities[entityName] = {act:entity.actuators, posx:posx, posy:posy};
+			entitiesPos[''+posx+','+posy] = entity.actuators;
+		},
+		moveEntity : function(entityName, newPosx, newPosy){
+			ox = entities[entityName]; oy = entities[entityName];
+			entities[entityName].posx = newPosx; entities[entityName].posy = newPosy;
+			delete entitiesPos[""+ox+","+oy];
+			entitiesPos[""+newPosx+","+newPosy] = entities[entityName];
+		},
+		getEntityActuatorbyName : function(entityName, trigger){
+			return entities[entityName].act[trigger];
+		},
+		getEntityActuator : function(x,y,trigger){
+			return entitiesPos[""+x+","+y][trigger];
+		}
+	}
+}();
 
 //Creates the animations for the map entities
 var loadEntitiesAnimations = function(entities){
@@ -172,13 +190,6 @@ var loadEntitiesAnimations = function(entities){
 				type: $.gameQuery.ANIMATION_HORIZONTAL | $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
 	});
 	return pjAnimations;
-};
-
-
-//Adds a entity to the playground and adds the trigger
-var addEntity = function(entity, entityName, animation){
-		$("#actors").addSprite(entityName, {animation: animation, posx:entity.posx, posy:entity.posy });
-		collisions.addEntity(Math.ceil(entity.posx/32)+1, Math.ceil(entity.posy/32)+1);
 };
 
 
@@ -212,8 +223,7 @@ var loadMap = function (map){
     $.playground().addGroup("actors");
     $("#actors").addSprite("PJ", {animation: pjAnimation, posx:0, posy:0 });
     $.each(ents, function(key, value){
-  		addEntity(value, key, entAnimations[key]);
- 
+  		entities.add(value, key, entAnimations[key], value.posx, value.posy);
     });
 };
 
@@ -272,10 +282,15 @@ $(function(){
 $(document).keydown(function(e){
 	switch(e.keyCode){
     	case 13: //this is enter! (enter)
-        	$.getJSON('http://127.0.0.1:8080/game/entity=1/trigger=press', function(data){
+    	pos = pjPosition.getLookedPosition();
+    	x = pos.x;
+    	y = pos.y;
+    	ent = entities.getEntityActuator(x,y,"press");
+    	if(ent){
+        	$.getJSON('http://127.0.0.1:8080/game/entity='+ent+'/trigger=press', function(data){
 				if(data.mtoggle.sprite.newSprite == 'on')
 					animations.setRow(1, data.mtoggle.sprite.instance); 
 				if (data.mtoggle.sprite.newSprite == 'off')
 					animations.setRow(2, data.mtoggle.sprite.instance);
         	});
-    }});
+    }}});
