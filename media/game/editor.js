@@ -2,11 +2,23 @@
 var PLAYGROUND_WIDTH    = 790;
 var PLAYGROUND_HEIGHT   = 550;
 
-function setToolTile(){
-	
+function setToolTile(tile){
+	if(!tile){
+		$("#options").html("<div id='tilesMap'></div>");
+		for (i=1; i<=$.tiles.tiles().length; i++)
+			$("#tilesMap").append("<img id='st"+i+"' src='/static/tiles/"+i+".gif'" +
+				" onclick='setToolTile("+i+")'" +
+				"style='opacity:0.5'/>")
+	}
+	else{
+		$.tiles.toolTile = tile;
+		$(".highlight").animate({opacity:0.5});
+		$("#st"+tile).animate({opacity:1});
+		$("#st"+tile).addClass('highlight');
+	}	
 }
 var changeTile = function(x, y){
-	$.tiles.changeTile(x,y,3);
+	$.tiles.changeTile(x,y,$.tiles.toolTile);
 };
 
 function setToolEntity(){
@@ -90,9 +102,11 @@ var entities = function(){
 $.tiles = function(){
 	tilemap = [];
 	tileAnims = [];
+	tils = [];
 	return {
 		tilemap: function(tilem){
-			tilemap = tilem;
+			if(tilem)
+				tilemap = tilem;
 			return tilemap;
 		},
 		changeTile: function(x, y, tile){
@@ -100,10 +114,19 @@ $.tiles = function(){
 			$("#tile_tile_"+ parseInt(y-1) +"_"+parseInt(x-1)).setAnimation(tileAnims[tile-1]);
 		},
 		loadTileAnimations : function(len){
-			for (i=1; i<=len; i++)
-					tileAnims[i-1] = new $.gameQuery.Animation({imageURL: "/static/tiles/"+i+".gif", delta:32, rate:300});				
+			for (i=1; i<=len; i++){
+					tileAnims[i-1] = new $.gameQuery.Animation({imageURL: "/static/tiles/"+i+".gif", delta:32, rate:300});
+					tils[i-1] = i;
+			}
 			return tileAnims;
-		}
+		},
+		tileAnimations: function(){
+			return tileAnims;
+		},
+		tiles: function(){
+			return tils;
+		},
+		toolTile: 1
 	}
 }();
 
@@ -122,12 +145,14 @@ var loadEntitiesAnimations = function(entities){
 
 //LOADS A MAP
 var loadMap = function (map){
+		tilemap
     var tilemap = $.tiles.tilemap(map.tilemap);
-	var tiles = map.tiles;
 	var ents = map.entities;
 	delete map;
+	$.getJSON('/static/tiles/number_tiles.json', function(data){
+		tlength = data.l;
 	
-	tileAnimations = animations.loadTileAnimations(tiles);
+	tileAnimations = $.tiles.loadTileAnimations(tlength);
 	entAnimations = loadEntitiesAnimations(ents);
 	
 	$("#playground").playground({height: PLAYGROUND_HEIGHT, 
@@ -142,6 +167,8 @@ var loadMap = function (map){
     });
     
     $("#playground").click(tool);
+	});
+	
 };
 
 $(function(){
