@@ -26,17 +26,18 @@ def game(request):
     return HttpResponse(t.render(c))
 
 def response(request, entity, trigger):
-    acts = models.Actuator.objects.filter(owner__pk=entity).filter(type__trigger__name=trigger)
+    acts = models.Actuator.objects.filter(owner__pk=entity).filter(trigger__name=trigger)
+    state = models.PCConcreteState.objects.get(pk=1)
     messages = "{"
     i = False
     for e in acts:
         if(i):
             messages += ','
-        m = imp.load_module('entityCode.' + e.target.type.type, 
-            open(settings.CRYSIL_PATH + 'entityCode/'+e.target.type.type+'.py', 'r'),
-            settings.CRYSIL_PATH + 'entityCode/'+e.target.type.type+'.py',
+        m = imp.load_module('entityCode.' + e.target.type.name, 
+            open(settings.CRYSIL_PATH + 'entityCode/'+e.target.type.name+'.py', 'r'),
+            settings.CRYSIL_PATH + 'entityCode/'+e.target.type.name+'.py',
             ('0','r', 1))
-        messages += '"m' + e.type.behaviour.name + '":' +  getattr(m, e.type.behaviour.name)(e.target)
+        messages += '"m' + e.behaviour.name + '":' +  getattr(m, e.behaviour.name)(e.target, state)
         i = True
     messages += "}"
     return HttpResponse(messages, mimetype='application/json')

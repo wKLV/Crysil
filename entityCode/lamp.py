@@ -1,20 +1,20 @@
-from entityCode import jsonMessages
-from game.models import WorldState, State
+from crysil.entityCode import jsonMessages
+from crysil.game.models import EntityStateInstance, PCConcreteState, State
 
-def toggle(instance):
-    w = WorldState.objects.filter(state= State.objects.filter(name='on?')
-            .get(entityType=instance.type)).get(map=instance.map)
-    v = w.value 
-    if(v is False):
-        w.value = True
-        w.save()
-        print w.value
-        return jsonMessages.createJSONResponse(
-                changeSprite= {'instance': str(instance.id),
-                                'newSprite': 'on' })
-    elif (v is True):
-        w.value = False
+def on(instance, state):
+    w = EntityStateInstance.objects.get(entity=instance, saved=state)
+    on = State.objects.get(name='on')
+    off = State.objects.get(name='off')
+    v = w.state 
+    if(v == on):
+        w.state = off
         w.save()
         return jsonMessages.createJSONResponse(
                 changeSprite= {'instance': str(instance.id),
-                                'newSprite': 'off' })
+                                'newSprite': 1 })
+    elif (v == off):
+        w.state = on
+        w.save()
+        return jsonMessages.createJSONResponse(
+                changeSprite= {'instance': str(instance.id),
+                                'newSprite': 2 })

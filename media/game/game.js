@@ -288,9 +288,6 @@ $(document).keydown(function(e){
     	ent = entities.getEntityActuator(x,y,"press");
     	if(ent){
         	$.getJSON('http://127.0.0.1:8080/game/entity='+ent+'/trigger=press', function(data){
-				if(data.mtoggle.sprite.newSprite == 'on')
-					animations.setRow(1, data.mtoggle.sprite.instance); 
-				if (data.mtoggle.sprite.newSprite == 'off')
-					animations.setRow(2, data.mtoggle.sprite.instance);
+					animations.setRow(data.mon.sprite.newSprite, data.mon.sprite.instance);
         	});
     }}});

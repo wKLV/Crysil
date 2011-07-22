@@ -1,6 +1,10 @@
 from django.db import models
 import settings
 
+#
+# HOW THE GAME IS
+#
+
 class Tile (models.Model):
     """A piece in the floor of the map  """
     name = models.CharField(max_length=75)
@@ -20,6 +24,16 @@ class Map (models.Model):
     tilemap = models.CommaSeparatedIntegerField(max_length=1000000)
     def __unicode__(self):
         return self.name
+    
+class Entrance(models.Model):
+    """A entrance to a map. 
+    
+    For example, in a corridor, the two doors.
+    """
+    map = models.ForeignKey(Map)
+    posx = models.IntegerField()
+    posy = models.IntegerField()
+    name = models.CharField(max_length=25)
 
 class Wall(models.Model):
     """A continuous vertical brick or stone structure that encloses or divides an area of land 
@@ -33,6 +47,24 @@ class Wall(models.Model):
     finaly = models.IntegerField()
     map = models.ForeignKey(Map)
 
+class Behaviour(models.Model):
+    """Something that can happen to the entity, like opening, begining a battle
+    
+    It points to python code that will be executed
+    """
+    name = models.CharField(max_length=25)
+    def __unicode__(self):
+        return name
+  
+class Trigger(models.Model):
+    """All the ways of interact with an entity
+    
+    For example: Main action, Mouse over, a puzzle power...
+    """
+    name = models.CharField(max_length=25)
+    def __unicode__(self):
+        return name
+  
 class EntityType(models.Model):
     """Generalization of an entity, which contains its logic
     
@@ -41,46 +73,11 @@ class EntityType(models.Model):
     to the entity), and actuatorsType (what can the user do with the entity)
     """
     name = models.CharField(max_length=35)
-    type = models.FilePathField(settings.CRYSIL_PATH + "entityCode") 
     sprite = models.FilePathField(settings.CRYSIL_PATH + "media/pj")
+    behaviours = models.ManyToManyField(Behaviour)
+    triggers = models.ManyToManyField(Trigger)
     def __unicode__(self):
-        return reactions.__unicode()
-    
-class State(models.Model):
-    """It indicates a posibility of how a entity can be
-    
-    For example: Turned on, opened, dead...
-    """
-    name = models.CharField(max_length=35)    
-    entityType = models.ForeignKey(EntityType)
-    
-class Trigger(models.Model):
-    """All the ways of interact with an entity
-    
-    For example: Main action, Mouse over, a puzzle power...
-    """
-    name = models.CharField(max_length=25)
-
-class Behaviour(models.Model):
-    """Something that can happen to the entity, like opening, begining a battle
-    
-    It points to python code that will be executed
-    """
-    name = models.CharField(max_length=25)
-    entityType = models.ForeignKey(EntityType)
-  
-class ActuatorType(models.Model):
-    """Generalization of an Actuator, whic contains the base of the concrete Actuator
-        
-    It specifies the behaviour that will happen when it is used. This sets
-    the behaviour which will be executed, but not the entity who has that
-    behaviour. That is settled in Actuator
-    """
-    entityType = models.ForeignKey(EntityType)
-    behaviour = models.ForeignKey(Behaviour)
-    trigger = models.ForeignKey(Trigger)
-    def __unicode__(self):
-        return self.name
+        return name
   
 class EntityInstance (models.Model):
     """A concrete element in the map which the player can interact with
@@ -99,15 +96,105 @@ class Actuator(models.Model):
     
     It specifies the behaviour that will happen when it is used.    
     """
-    type = models.ForeignKey(ActuatorType)
+    trigger = models.ForeignKey(Trigger)
     owner = models.ForeignKey(EntityInstance, related_name='actuator_owner')
     target = models.ForeignKey(EntityInstance, related_name='actuator_target')
+    behaviour = models.ForeignKey(Behaviour)
+
+class Episode(models.Model):
+    """A game or a part of one divided by its release. It consists of chapters
+    """
+    name = models.CharField(max_length=30)
+    description = models.CharField(max_length=500)
+    previous = models.ForeignKey("self")
+
+class Chapter(models.Model):
+    """A part of the game composed of missions
     
-class WorldState(models.Model):
-    """It saves the value of the states in one map of a player game and in a concrete time
+    The chapters are arranged, and you cannot come back from the next"""
+    name = models.CharField(max_length=30)
+    episode = models.ForeignKey(Episode)
+    description = models.CharField(max_length=500)
+    previous = models.ForeignKey("self")
+
+class Mission(models.Model):
+    """A division of the game, mostly independent from the rest
+    
+    It is usually a task that needs to be done by the player
+    """
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=300)
+
+class State(models.Model):
+    """A posibility of how could a entity or a mission be
     
     """
+    name = models.CharField(max_length=35)
+    description = models.TextField()
+    
+class EntityStateType(models.Model):
+    """A property of an entity which may have a value
+    
+    """
+    entity = models.ForeignKey(EntityType)
+    name = models.CharField(max_length=25)
+    posibilities = models.ManyToManyField(State)
+
+class MissionStateType(models.Model):
+    """Property of a mission which may have a value
+    """
+    mission = models.ForeignKey(Mission)
+    name = models.CharField(max_length=25)
+    posibilites = models.ManyToManyField(State)
+
+#
+# HOW THE GAME IS SAVED
+#
+
+class Game(models.Model):
+    """A game fully independent which a player plays
+    
+    For example, User A creates a game to play Episode E with a
+    sorcerer, and User B creates one to play with a warrior.
+    They keep the game in the followinfg episodes, but one day
+    A creates a new game to play with a warrior
+    """
+    name = models.CharField(max_length=30)
+    startEpisode = models.ForeignKey(Episode)
+    
+class PCGenericState(models.Model):
+    """A general save of the state of the game.
+    
+    It saves the state of the missions and the general 
+    location of the character
+    """
+    chapter = models.ForeignKey(Chapter, blank=True, null=True)
+    game = models.ForeignKey(Game, blank=True, null=True)
+    entrance = models.ForeignKey(Entrance, blank=True, null=True)
+    
+class PCConcreteState(models.Model):
+    """A concrete save of the state of the game.
+    
+    It saves the general state plus the state of the map
+    in the moment of saving
+    """
+    genericState = models.ForeignKey(PCGenericState)
+    pcposx = models.IntegerField()
+    pcposy = models.IntegerField()
+    
+class EntityStateInstance(models.Model):
+    """A concrete state of a concrete instance in saved game
+    """
+    type = models.ForeignKey(EntityStateType)
+    entity = models.ForeignKey(EntityInstance)
+    saved = models.ForeignKey(PCConcreteState)
     state = models.ForeignKey(State)
-    map = models.ForeignKey(Map)
-    value = models.BooleanField()
-    #TODO: PLAYER AND TIME
+
+class MissionStateInstance(models.Model):
+    """A concrete state of a mission in a saved game
+    """
+    type = models.ForeignKey(MissionStateType)
+    save = models.ForeignKey(PCGenericState)
+    state = models.ForeignKey(State)
+
+    save = models.ForeignKey(PCGenericState)

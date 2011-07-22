@@ -9,92 +9,150 @@ function setToolTile(tile){
 			$("#tilesMap").append("<img id='st"+i+"' src='/static/tiles/"+i+".gif'" +
 				" onclick='setToolTile("+i+")'" +
 				"style='opacity:0.5'/>")
+		$.tool.setTool('Tile')
 	}
 	else{
-		$.tiles.toolTile = tile;
-		$(".highlight").animate({opacity:0.5});
+		$.tool.changeToolTile(tile);
 		$("#st"+tile).animate({opacity:1});
+		$(".highlight").animate({opacity:0.5});
 		$("#st"+tile).addClass('highlight');
 	}	
 }
-var changeTile = function(x, y){
-	$.tiles.changeTile(x,y,$.tiles.toolTile);
-};
 
-function setToolEntity(){
-	
-}
-
-var tool = function(ev){
-	x = ev.pageX;
-	y = ev.pageY;
-	
-	tx = Math.ceil(x/32);
-	ty = Math.ceil(y/32)-1;
-	
-	changeTile(tx,ty);
-	
-}
-
-var animations = function(){
-	anims = {};
-	tileAnims = new Array();
-	return { 
-		add : function(animationName, options){
-			var animation = new $.gameQuery.Animation(options);
-			anims[animationName] = animation;
-			return animation;
-		},
-		get : function(animationName){
-			return anims[animationName];
-		},
-		setRow : function(row, animationName){
-			anim = anims[animationName];
-			anim.offsety = (row-1)*anim.delta;
-			return anim;
-		},
-		setColumn : function(column, animationName){
-			anim = anims[animationName];
-			anim.offsetx = (column-1)*anim.delta;
-			return anim;
-		},
-		setEntityAnimation : function(enitityId, animationName){
-			$('#'+entityId).setAnimation(anims[animationName]);
-		},
-		loadTileAnimations : function(tiles){
-			var c=0;
-			for (i=1; i<tiles[tiles.length-1]+1; i++){
-				if(tiles[c]==i){
-					tileAnims[i-1] = new $.gameQuery.Animation({imageURL: "/static/tiles/"+i+".gif", delta:32, rate:300});
-					c++;
-				}
-//as the animations are got by their index, it puts blank where should be animations	
-				else tileAnims.push(0);
-			}; 
-			return tileAnims
+function setToolEntity(entity){
+	if(!entity){
+		$("#options").html("<div id='entitiesMap'></div>");
+		$("#entitiesMap").append("<div id='sedelete' onclick='setToolEntity(\"delete\")')" +
+					" style='opacity:0.5; height:32px; width:32px; float:left;" +
+					"background-image:url(/static/tiles/tool.gif)'/>");
+		entities = $.entities.getEntityTypes();
+		$.each(entities, function(key, value){
+			$("#entitiesMap").append("<div id='se"+key+"' onclick='setToolEntity(\""+key+"\")')" +
+					" style='opacity:0.5; height:32px; width:32px; float:left;" +
+					"background-image:url("+value.sprite+")'/>");
+		});
+		$.tool.setTool('Entity')
+	}
+	else{
+		if(entity !== 'delete'){
+			ent = $.entities.getEntityTypes()[entity];
+			ent.name = entity;
+			$.tool.changeToolEntity(ent);
+			$("#se"+entity).animate({opacity:1});
+			$(".highlight").animate({opacity:0.5});
+			$("#se"+entity).addClass('highlight');		
+		}
+		else {
+			$.tool.changeToolEntity({type:'delete'});
+			$("#sedelete").animate({opacity:1});
+			$(".highlight").animate({opacity:0.5});
+			$("#sedelete").addClass('highlight');		
 		}
 	}
+}
+
+$.tool = function(){
+	var current = null;
+	var toolTile = 1;
+	var toolEntity = function(){
+		that = {
+			name: 'tool',
+			type: 'delete',
+			sprite: 'static/pj/tool.png',
+			actuators: {}
+		};
+		return {
+			get: function(){
+				return {name: that.name,
+						type: that.type,
+						sprite: that.sprite,
+						actuators: that.actuators,
+						behaviours: that.behaviours,
+						triggers: that.triggers
+				};
+			},
+			set: function(entity){
+				if (entity) $.extend(true, that, entity);			
+			}
+		}
+	}();
+
+	return {
+		t: function(ev){
+			x = ev.pageX - this.offsetLeft;
+			y = ev.pageY - this.offsetTop;
+			
+			tx = Math.ceil(x/32);
+			ty = Math.ceil(y/32);
+			
+			if(current== 'Tile')
+				$.tiles.changeTile(tx,ty, toolTile);
+			else if(current=='Entity')
+				$.entities.changeEntity(tx, ty, toolEntity.get());
+		},
+		changeToolTile: function(tile){
+			toolTile = tile;
+		},
+		changeToolEntity: function(entity){
+			toolEntity.set(entity);
+		},
+		setTool: function(tool){
+			current = tool;
+		}
+	}		
 }();
 
-var entities = function(){
-	entities = {};
-	entitiesPos = {};
+
+$.entities = function(){
+	entis = {};
+	actuators = {};
+	entitesAnimations = {};
+	entitiesAnimationsSprite = {};
+	entityTypes = {};
 	return {
-		add : function(entity, entityName, animation, posx, posy){
-			$("#actors").addSprite(entityName, {animation: animation, posx:(entity.posx-1)*32, posy:(entity.posy-1)*32 });
-			entitiesPos[''+posx+','+posy] = entity.actuators;
+		loadEntites: function(entities){
+				$.each(entities, function(key, value){
+					value.type = key;
+					entityTypes[key] = value;
+  					entitesAnimations[key] = new $.gameQuery.Animation(
+  					  {imageURL: value.sprite, numberofFrame:1, delta:32,
+  					   distance:0, rate:100, type: $.gameQuery.ANIMATION_HORIZONTAL |
+  					   $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
+  					entitiesAnimationsSprite[value.sprite] = new $.gameQuery.Animation(
+  					  {imageURL: value.sprite, numberofFrame:1, delta:32,
+  					   distance:0, rate:100, type: $.gameQuery.ANIMATION_HORIZONTAL |
+  					   $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
+				});
+				return entitiesAnimationsSprite;
 		},
-		moveEntity : function(entityName, newPosx, newPosy){
-			ox = entities[entityName]; oy = entities[entityName];
-			entities[entityName].posx = newPosx; entities[entityName].posy = newPosy;
-			delete entitiesPos[""+ox+","+oy];
-			entitiesPos[""+newPosx+","+newPosy] = entities[entityName];
+		add : function(entity, x, y){
+			$("#actors").addSprite(entity.name+'-'+x+'-'+y, {
+				animation: new $.gameQuery.Animation(
+  					  {imageURL: entity.sprite, numberofFrame:1, delta:32,
+  					   distance:0, rate:100, type: $.gameQuery.ANIMATION_HORIZONTAL |
+  					   $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32}),
+  				posx:(x-1)*32, posy:(y-1)*32});
+			entis[""+x+","+y] = entity;
 		},
-		getEntityActuatorbyName : function(entityName, trigger){
-			return entities[entityName].act[trigger];
+		remove: function(entityName, posx, posy){
+			$("#"+entityName+'-'+posx+'-'+posy).remove();
+			entis[""+posx+","+posy] = null;
 		},
-		getEntityActuator : function(x,y,trigger){
-			return entitiesPos[""+x+","+y][trigger];
+		getEntityTypes: function(){
+			return entityTypes;
+		},
+		changeEntity: function(x, y, entity){
+			e = entis[""+x+","+y];
+  			if(!e && entity.type !== 'delete')
+				this.add(entity, x, y);
+  			else if(entity.type === 'delete')
+  				this.remove(e.name, x, y);
+  			else if(e.type !== entity.type){
+  				this.remove(e.name, x, y);
+  				this.add(entity, x, y, entity.actuators);
+  			}
+  			else
+  				$.extend(actuators[entity.name], entity.actuators);
 		}
 	}
 }();
@@ -125,35 +183,20 @@ $.tiles = function(){
 		},
 		tiles: function(){
 			return tils;
-		},
-		toolTile: 1
+		}
 	}
 }();
 
-//Creates the animations for the map entities
-var loadEntitiesAnimations = function(entities){
-	var pjAnimations = {}
-	$.each(entities, function(key, value){
-  		pjAnimations[key] = 
-  			//new $.gameQuery.Animation({imageURL: value.sprite})
-  			animations.add(key, {imageURL: value.sprite, numberofFrame:1, delta:32, distance:0, rate:100,
-				type: $.gameQuery.ANIMATION_HORIZONTAL | $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
-	});
-	return pjAnimations;
-};
-
-
 //LOADS A MAP
 var loadMap = function (map){
-		tilemap
     var tilemap = $.tiles.tilemap(map.tilemap);
 	var ents = map.entities;
 	delete map;
 	$.getJSON('/static/tiles/number_tiles.json', function(data){
-		tlength = data.l;
-	
+	tlength = data.l;
+	$.getJSON("/static/pj/entities.json", function(entities){
 	tileAnimations = $.tiles.loadTileAnimations(tlength);
-	entAnimations = loadEntitiesAnimations(ents);
+	entAnimations = $.entities.loadEntites(entities);
 	
 	$("#playground").playground({height: PLAYGROUND_HEIGHT, 
     	width: PLAYGROUND_WIDTH, keyTracker: true}).startGame();
@@ -163,11 +206,10 @@ var loadMap = function (map){
     
     $.playground().addGroup("actors");
     $.each(ents, function(key, value){
-  		entities.add(value, key, entAnimations[key], value.posx+1, value.posy+1);
+    	value.name = key;
+  		$.entities.add(value, value.posx, value.posy);
     });
-    
-    $("#playground").click(tool);
-	});
+   	})});
 	
 };
 
@@ -182,4 +224,5 @@ $(function(){
 	var map = json_parse(mapJSON).map;
 
 	loadMap(map);
+	$("#playground").click($.tool.t);
 });

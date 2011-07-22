@@ -36,7 +36,7 @@ def convertEntityToJSON(entity, name):
     for e in actuators:
         if (i):
             text += ','
-        text += '"' + e.type.trigger.name + '":' + str(e.id)
+        text += '"' + e.trigger.name + '":' + str(e.id)
         i = True
     text += '},'
     text += '"posx":'+ str(entity.posx) + ', "posy":' + str(entity.posy)
