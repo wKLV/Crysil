@@ -648,14 +648,17 @@
                 currentFrame:	0,
                 geometry:       $.gameQuery.GEOMETRY_RECTANGLE,
                 angle:          0,
-                factor:         1
+                factor:         1,
+                classes: ''
             }, options);
             
-            var newSpriteElem = "<div id='"+sprite+"' class='sprite' style='position: absolute; display: block; overflow: hidden; height: "+options.height+"px; width: "+options.width+"px; left: "+options.posx+"px; top: "+options.posy+"px; background-position: "+((options.animation)? -options.animation.offsetx : 0)+"px "+((options.animation)? -options.animation.offsety : 0)+"px;' />";
+            var newSpriteElem = "<div id='"+sprite+"' style='position: absolute; display: block; overflow: hidden; height: "+options.height+"px; width: "+options.width+"px; left: "+options.posx+"px; top: "+options.posy+"px; background-position: "+((options.animation)? -options.animation.offsetx : 0)+"px "+((options.animation)? -options.animation.offsety : 0)+"px;' />";
             if(this == $.gameQuery.playground){
                 $.gameQuery.sceengraph.append(newSpriteElem);
+                $("#"+sprite).addClass('sprite '+ options.classes);
             } else {
                 this.append(newSpriteElem);
+                $("#"+sprite).addClass('sprite '+ options.classes);
             }
             
             //if the game has already started we want to add the animation's image as a background now:
