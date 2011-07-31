@@ -1,72 +1,32 @@
 from game import models
 from entityCode import jsonMessages
 
-models.Map.objects.all().delete()
-models.Tile.objects.all().delete()
-models.EntityType.objects.all().delete()
-models.Trigger.objects.all().delete()
-models.Behaviour.objects.all().delete()
-models.EntityInstance.objects.all().delete()
-models.Actuator.objects.all().delete()
 models.State.objects.all().delete()
 models.EntityStateType.objects.all().delete()
 models.EntityStateInstance.objects.all().delete()
 models.PCGenericState.objects.all().delete()
 models.PCConcreteState.objects.all().delete()
 
+switch = models.EntityType.objects.get(name='switch', sprite='switch.gif')
+lamp = models.EntityType.objects.get(name='lamp', sprite='lamp.png')
 
-sand = models.Tile(name='sand', walkable=True)
-sand.save()
-water = models.Tile(name='water', walkable=False)
-water.save()
-grass = models.Tile(name='grass', walkable=True)
-grass.save()
-
-beh = models.Behaviour(name='toggle')
-beh.save()
-lbeh = models.Behaviour(name='on')
-lbeh.save()
-trig = models.Trigger(name='press')
-trig.save()
-
-switch = models.EntityType(name='switch', sprite='switch.gif')
-switch.save()
-switch.behaviours.add(beh)
-switch.triggers.add(trig)
-switch.save()
-lamp = models.EntityType(name='lamp', sprite='lamp.png')
-lamp.save()
-lamp.behaviours.add(lbeh)
-lamp.save()
 on = models.State(name='on')
 off = models.State(name='off')
 on.save()
 off.save()
+
 state = models.EntityStateType(name='on?', entity=lamp)
 state.save()
 state.posibilities.add(on)
 state.posibilities.add(off)
 state.save()
 
-
-map = models.Map(name='wallyTest', sizex=3, sizey=3, tiles=[1,2,3], tilemap=[1,1,1,2,2,2,3,3,3])
-map.save()
-mySwitch = models.EntityInstance(type=switch, posx=64, posy=0, map=map)
-mySwitch.save()
-myLamp = models.EntityInstance(type=lamp, posx=128, posy=64, map=map)
-myLamp.save()
-act = models.Actuator(trigger=trig, owner=mySwitch, target=myLamp, behaviour=lbeh)
-act.save()
-wally = models.Wall(sprite='wally', crossable=False, originx=1, originy=1, finalx=2, finaly=1, map = map)
-wally.save()
-
 genericState = models.PCGenericState()
 genericState.save()
-saved = models.PCConcreteState(genericState=genericState, pcposx=1, pcposy=1)
+saved = models.PCConcreteState(pk=1, genericState=genericState, pcposx=1, pcposy=1)
 saved.save()
 
-lampState = models.EntityStateInstance(type=state, entity=myLamp, saved=saved, state=off)
-lampState.save()
 
-
-print jsonMessages.convertMapToJSON(map.name)
+for e in models.EntityInstance.objects.filter(type=lamp):
+    lampState = models.EntityStateInstance(type=state, entity=e, saved=saved, state=off)
+    lampState.save()

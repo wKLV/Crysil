@@ -32,14 +32,14 @@ def convertEntityToJSON(entity, name):
     actuators = entity.actuator_owner.all()
     text += '"actuators":{'
     i = False
-    # TO SOLVE: If there are more than one actuator per trigger
     for e in actuators:
         if (i):
             text += ','
-        text += '"' + e.trigger.name + '":' + str(e.id)
+        text += '"' + e.trigger.name + '":' + str(entity.id)
         i = True
     text += '},'
-    text += '"posx":'+ str(entity.posx) + ', "posy":' + str(entity.posy)
+    text += '"posx":'+ str(entity.posx) + ', "posy":' + str(entity.posy) +','
+    text += '"type":"' +str(entity.type) +'"'
     text += '}'
     return text
 
@@ -91,3 +91,6 @@ def convertMapToJSON(mapName):
 
 def returnMap(mapname):
     return open('../JSONmaps/'+mapName+'.json', 'r').read()
+
+def parseMap(mapText):
+    return json.loads(mapText)

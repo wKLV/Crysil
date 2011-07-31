@@ -1,5 +1,6 @@
 from django.db import models
 import settings
+from  django.core.exceptions import ObjectDoesNotExist
 
 #
 # HOW THE GAME IS
@@ -54,7 +55,7 @@ class Behaviour(models.Model):
     """
     name = models.CharField(max_length=25)
     def __unicode__(self):
-        return name
+        return self.name
   
 class Trigger(models.Model):
     """All the ways of interact with an entity
@@ -63,7 +64,7 @@ class Trigger(models.Model):
     """
     name = models.CharField(max_length=25)
     def __unicode__(self):
-        return name
+        return self.name
   
 class EntityType(models.Model):
     """Generalization of an entity, which contains its logic
@@ -77,7 +78,7 @@ class EntityType(models.Model):
     behaviours = models.ManyToManyField(Behaviour)
     triggers = models.ManyToManyField(Trigger)
     def __unicode__(self):
-        return name
+        return self.name
   
 class EntityInstance (models.Model):
     """A concrete element in the map which the player can interact with
@@ -100,6 +101,8 @@ class Actuator(models.Model):
     owner = models.ForeignKey(EntityInstance, related_name='actuator_owner')
     target = models.ForeignKey(EntityInstance, related_name='actuator_target')
     behaviour = models.ForeignKey(Behaviour)
+    def __unicode__(self):
+        return unicode(self.owner)+' if is '+ unicode(self.trigger)+' invokes '+unicode(self.behaviour)+' of '+unicode(self.target)
 
 class Episode(models.Model):
     """A game or a part of one divided by its release. It consists of chapters
@@ -198,3 +201,41 @@ class MissionStateInstance(models.Model):
     state = models.ForeignKey(State)
 
     save = models.ForeignKey(PCGenericState)
+    
+def saveMap(map):
+    # SAVE THE MAP OBJECT
+    tmap = map.get('tilemap')
+    tiles = []
+    tilemap = []
+    for e in tmap:
+        for i in e:
+            tilemap.append(i)
+            if not i in tiles:
+                tiles.append(i)
+    tiles = sorted(tiles)
+    mapName = map.get('name')
+    try:
+        Map.objects.get(name=mapName).delete()
+    except ObjectDoesNotExist:
+        pass
+
+    nMap = Map(name=mapName, tiles=tiles, tilemap=tilemap, sizex=len(tmap[0]), sizey=len(tmap))
+    nMap.save()
+    
+    # SAVE THE ENTITYINSTANCE OBJECTS
+    entis = map.get('entities').items()
+    entities = {}
+    for e in entis:
+        e = e[1]
+        ent = EntityInstance(type=EntityType.objects.get(name=e.get('type')), map=nMap, posx=e.get('x'), posy=e.get('y'))
+        ent.save()
+        entities[e.get('name')] = ent
+    # SAVE THE ACTUATORS        ak = a[0]
+   
+    acts = map.get('actuators').items()
+    for own in acts:
+        for trig in own[1]:
+            actus = own[1][trig]
+            for a in actus:
+                actuator = Actuator(trigger=Trigger.objects.get(name=trig), owner=entities[own[0]], target=entities[a.get('target')], behaviour=Behaviour.objects.get(name=a.get('behaviour')))
+                actuator.save()

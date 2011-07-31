@@ -3,16 +3,19 @@ var PLAYGROUND_WIDTH    = 790;
 var PLAYGROUND_HEIGHT   = 550;
 var REFRESH_RATE        = 15;
 
+//It manages the collisions
 var collisions = function(){
-	 walls= {};
-	 tiles = {};
-	 entities = {};
+	 var walls= {};
+	 var tiles = {};
+	 var entities = {};
+	 // Helper function that generates a key for two points
 	 var createKey = function(posx1, posy1, posx2, posy2){
 	 	return "" + posx1+','+ posy1+';'+posx2+','+posy2;
-	 }
+	 };
+	 // Helper function that generates a key for one point
 	 var createSKey = function(posx, posy){
 	 	return ""+posx+','+posy;
-	 }
+	 };
 	 return {
 		 addWall : function(posx, posy, len, direction) {
 		 	if (direction == 0)
@@ -29,50 +32,58 @@ var collisions = function(){
 		 	entities[createSKey(posx, posy)] = true;
 		 },
 		 isPassable: function(posx1, posy1, posx2, posy2){
-		 	w = walls[createKey(posx1,posy1,posx2,posy2)];
-		 	t = tiles[createSKey(posx2,posy2)];
-		 	e = entities[createSKey(posx2,posy2)]
+		 	var w = walls[createKey(posx1,posy1,posx2,posy2)];
+		 	var t = tiles[createSKey(posx2,posy2)];
+		 	var e = entities[createSKey(posx2,posy2)]
 		 	if (w || t || e) return false;
 		 	else return true;
 		 }
 	 };
 }();
 
+// It manages the position of the pj
 var pjPosition = function(){
-	posx=1; posy=1; dir = 0;
-	getNewPosition = function(incX, incY, aut){
+	// The current positions and direction
+	var posx=1; var posy=1; var dir = 0;
+	// position : {nPosx, nPosy}
+	// Help function to generate the position 
+	var getNewPosition = function(incX, incY, aut){
+		//Down left corner
 		if(dir === 135 || dir === 180 || dir === 225)
 			return {nPosx:parseInt($("#PJ").css("left"))+incX,
 			  nPosy:parseInt($("#PJ").css("top"))+30+incY, automatic:aut};
+		// Down center
 		else if(dir === 90 ||dir ===  270)
 			return {nPosx:parseInt($("#PJ").css("left"))+16+incX,
 			  nPosy:parseInt($("#PJ").css("top"))+30+incY, automatic:aut};
+		// Down right corner
 		else if(dir === 0 || dir === 45 || dir === 315)
 			return {nPosx:parseInt($("#PJ").css("left"))+32+incX,
 			  nPosy:parseInt($("#PJ").css("top"))+30+incY, automatic:aut};
 	};
 	return {
 		changePosition : function (nPosx, nPosy){
-			nTPosx = Math.ceil(nPosx/32);
-			nTPosy = Math.ceil(nPosy/32);
-			posx=nTPosx;
-			posy=nTPosy;
-			if(dir === 135 || dir=== 180 || dir=== 225) $("#PJ").css("left", nPosx);
+			var nTPosx = Math.ceil(nPosx/32);
+			var nTPosy = Math.ceil(nPosy/32);
+			posx = nTPosx;
+			posy = nTPosy;
+			if (dir === 135 || dir=== 180 || dir=== 225) $("#PJ").css("left", nPosx);
 			else if (dir === 90 || dir===270) $("#PJ").css("left", nPosx-16);
 			else if (dir === 0 || dir===45 || dir===315) $("#PJ").css("left", nPosx-32);
 			$("#PJ").css("top", nPosy-30);
 		},
+		//opts x,y and automatic(changes the position automatically)
 		isChangePosition : function(opts){
-			nPosx = opts.nPosx; nPosy = opts.nPosy; automatic = opts.automatic;
-			nTPosx = Math.ceil(nPosx/32);
-			nTPosy = Math.ceil(nPosy/32);
+			// The new coordinates
+			var nPosx = opts.nPosx; var nPosy = opts.nPosy; var automatic = opts.automatic;
+			// the new TILE position
+			var nTPosx = Math.ceil(nPosx/32);
+			var nTPosy = Math.ceil(nPosy/32);
 			if (posx != nTPosx || nTPosy != posy)
 				if(collisions.isPassable(posx, posy, nTPosx, nTPosy)){
-					if(automatic){
-						this.changePosition(nPosx,nPosy);
-						return true;	
-					}
-					else return true;		 
+					if(automatic)
+						this.changePosition(nPosx,nPosy);	
+					return true;		 
 				}
 				else return false;
 			else {
@@ -116,8 +127,8 @@ var pjPosition = function(){
 }();
 
 var animations = function(){
-	anims = {};
-	tileAnims = new Array();
+	var anims = {};
+	var tileAnims = new Array();
 	return { 
 		add : function(animationName, options){
 			var animation = new $.gameQuery.Animation(options);
@@ -127,19 +138,22 @@ var animations = function(){
 		get : function(animationName){
 			return anims[animationName];
 		},
+		// It changes the row (horizontal) of a multianimation
 		setRow : function(row, animationName){
 			anim = anims[animationName];
 			anim.offsety = (row-1)*anim.delta;
 			return anim;
 		},
+		// It changes the column (vertical) of a multianimation
 		setColumn : function(column, animationName){
-			anim = anims[animationName];
+			var anim = anims[animationName];
 			anim.offsetx = (column-1)*anim.delta;
 			return anim;
 		},
 		setEntityAnimation : function(enitityId, animationName){
 			$('#'+entityId).setAnimation(anims[animationName]);
 		},
+		// It creates the necessary tiles, specified in the tiles field in the JSON
 		loadTileAnimations : function(tiles){
 			var c=0;
 			for (i=1; i<tiles[tiles.length-1]+1; i++){
@@ -156,8 +170,8 @@ var animations = function(){
 }();
 
 var entities = function(){
-	entities = {};
-	entitiesPos = {};
+	var entities = {};
+	var entitiesPos = {};
 	return {
 		add : function(entity, entityName, animation, posx, posy){
 			$("#actors").addSprite(entityName, {animation: animation, posx:(entity.posx-1)*32, posy:(entity.posy-1)*32 });
@@ -166,7 +180,7 @@ var entities = function(){
 			entitiesPos[''+posx+','+posy] = entity.actuators;
 		},
 		moveEntity : function(entityName, newPosx, newPosy){
-			ox = entities[entityName]; oy = entities[entityName];
+			var ox = entities[entityName]; oy = entities[entityName];
 			entities[entityName].posx = newPosx; entities[entityName].posy = newPosy;
 			delete entitiesPos[""+ox+","+oy];
 			entitiesPos[""+newPosx+","+newPosy] = entities[entityName];
@@ -176,21 +190,20 @@ var entities = function(){
 		},
 		getEntityActuator : function(x,y,trigger){
 			return entitiesPos[""+x+","+y][trigger];
+		}, 
+		//Creates the animations for the map entities
+		loadEntitiesAnimations: function(entities){
+			var pjAnimations = {}
+			$.each(entities, function(key, value){
+		  		pjAnimations[key] = 
+		  			//new $.gameQuery.Animation({imageURL: value.sprite})
+		  			animations.add(key, {imageURL: value.sprite, numberofFrame:1, delta:32, distance:0, rate:100,
+						type: $.gameQuery.ANIMATION_HORIZONTAL | $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
+			});
+			return pjAnimations;
 		}
 	}
 }();
-
-//Creates the animations for the map entities
-var loadEntitiesAnimations = function(entities){
-	var pjAnimations = {}
-	$.each(entities, function(key, value){
-  		pjAnimations[key] = 
-  			//new $.gameQuery.Animation({imageURL: value.sprite})
-  			animations.add(key, {imageURL: value.sprite, numberofFrame:1, delta:32, distance:0, rate:100,
-				type: $.gameQuery.ANIMATION_HORIZONTAL | $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
-	});
-	return pjAnimations;
-};
 
 
 //LOADS A MAP
@@ -200,9 +213,9 @@ var loadMap = function (map){
 	var ents = map.entities;
 	delete map;
 	
-	tileAnimations = animations.loadTileAnimations(tiles);
-	entAnimations = loadEntitiesAnimations(ents);
-	pjAnimation = animations.add('PJ', {imageURL: "/static/pj/robot1.png", numberOfFrame: 6, delta: 32, distance: 0, rate: 100, 
+	var tileAnimations = animations.loadTileAnimations(tiles);
+	var entAnimations = entities.loadEntitiesAnimations(ents);
+	var pjAnimation = animations.add('PJ', {imageURL: "/static/pj/robot1.png", numberOfFrame: 6, delta: 32, distance: 0, rate: 100, 
 		type: $.gameQuery.ANIMATION_HORIZONTAL | $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 0});
 		
 	$("#playground").playground({height: PLAYGROUND_HEIGHT, 
@@ -211,6 +224,7 @@ var loadMap = function (map){
     $.playground().addGroup("background")
     	.addTilemap("tile", tilemap, tileAnimations, {className:"t_"});
     
+    // We add to the colisions the non-walkable tiles
     var nonWalkTiles = [];
     $.getJSON("http://127.0.0.1:8080/static/tiles/walkable.json",function(nonWalkTiles){
     	for (i=0;i<tilemap.length; i++)
@@ -230,7 +244,7 @@ var loadMap = function (map){
 $(function(){
 	var mapJSON;	
 	var req = new XMLHttpRequest();
-	req.open('GET', 'http://127.0.0.1:8080/static/maps/test.json', false);
+	req.open('GET', 'http://127.0.0.1:8080/static/maps/MAPPY.json', false);
 	req.send(null);
 	if(req.status == 200)
 		mapJSON = req.responseText;
@@ -282,10 +296,10 @@ $(function(){
 $(document).keydown(function(e){
 	switch(e.keyCode){
     	case 13: //this is enter! (enter)
-    	pos = pjPosition.getLookedPosition();
-    	x = pos.x;
-    	y = pos.y;
-    	ent = entities.getEntityActuator(x,y,"press");
+    	var pos = pjPosition.getLookedPosition();
+    	var x = pos.x;
+    	var y = pos.y;
+    	var ent = entities.getEntityActuator(x,y,"press");
     	if(ent){
         	$.getJSON('http://127.0.0.1:8080/game/entity='+ent+'/trigger=press', function(data){
 					animations.setRow(data.mon.sprite.newSprite, data.mon.sprite.instance);

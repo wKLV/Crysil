@@ -1,6 +1,1 @@
-{"switch":{
-	"sprite":"/static/pj/switch.gif",
-	"triggers":["press"],
-	"behaviours":["toggle"]
-},
-"lamp":{"sprite":"/static/pj/lamp.png","triggers":[],"behaviours":["on", "break"]}}
+{"switch":{"sprite":"/static/pj/switch.gif","triggers":["press"],"behaviours":["toggle"]},"lamp":{"sprite":"/static/pj/lamp.png","triggers":[],"behaviours":["on"]}}

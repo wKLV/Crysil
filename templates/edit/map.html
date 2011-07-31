@@ -5,15 +5,14 @@
     <script type="text/javascript" src="/static/game/jquery.gamequery-0.5.0.js"></script>
     <script type="text/javascript" src="/static/game/editor.js"></script>
     <script type="text/javascript" src="/static/game/json_parse.js"></script>
+    <script type="text/javascript" src="/static/game/json2.js"></script>
     <script type="text/javascript" src="/static/game/jquery-ui-1.8.14.custom.min.js"></script>
     <style>
      #entOver {opacity:0}
     </style>
 </head>
 <body>
-	<form>
-	<h2>MAP EDITOR</h2> <input type="text" value="Name here"/> <input type="submit" value="Save"/>
-	</form>
+	<h2>MAP EDITOR</h2> <input id="mapName" type="text" value="Name here"/> <button onclick="saveMap()">Save</button>
 	<div id="tools">
 		<img src="/static/icons/tile.png" onclick="setToolTile()"/>
 		<img src="/static/icons/entity.png" onclick="setToolEntity()"/>

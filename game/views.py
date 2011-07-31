@@ -3,9 +3,10 @@ from django.http import HttpResponse
 from django.template import Context, loader
 import models
 import imp
-import settings
-#import entityCode.lamp
-#m = entityCode.lamp
+import settings as set
+from crysil.entityCode import jsonMessages
+from django.core.context_processors import csrf
+import models
 
 def importCode(code, name, add_to_sys_modules=False):
     # code can be any object containing code: a string, a file object, or
@@ -33,9 +34,9 @@ def response(request, entity, trigger):
     for e in acts:
         if(i):
             messages += ','
-        m = imp.load_module('entityCode.' + e.target.type.name, 
-            open(settings.CRYSIL_PATH + 'entityCode/'+e.target.type.name+'.py', 'r'),
-            settings.CRYSIL_PATH + 'entityCode/'+e.target.type.name+'.py',
+        m = imp.load_module('crysil.entityCode.' + e.target.type.name, 
+            open(set.CRYSIL_PATH + 'entityCode/'+e.target.type.name+'.py', 'r'),
+            set.CRYSIL_PATH + 'entityCode/'+e.target.type.name+'.py',
             ('0','r', 1))
         messages += '"m' + e.behaviour.name + '":' +  getattr(m, e.behaviour.name)(e.target, state)
         i = True
@@ -43,5 +44,12 @@ def response(request, entity, trigger):
     return HttpResponse(messages, mimetype='application/json')
 
 def editor(request):
-    return HttpResponse(loader.get_template('edit/map.html').render(Context({})))
-    
+    c = Context({})
+    c.update(csrf(request))
+    return HttpResponse(loader.get_template('edit/map.html').render(c))
+
+def savemap(request):
+    post = request.POST
+    map = jsonMessages.parseMap(post.get('map'))
+    models.saveMap(map)
+    return HttpResponse() 

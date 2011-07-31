@@ -18,5 +18,6 @@ urlpatterns = patterns('',
     (r'^accounts/', include('registration.urls')),
 	(r'^game/$', 'game.views.game'),
     (r'^game/entity=(?P<entity>\w+)/trigger=(?P<trigger>\w+)', 'game.views.response'),
-    (r'^editor/$', 'game.views.editor')
+    (r'^editor/$', 'game.views.editor'),
+    (r'^editor/savemap/$', 'game.views.savemap')
 )

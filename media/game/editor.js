@@ -2,6 +2,64 @@
 var PLAYGROUND_WIDTH    = 790;
 var PLAYGROUND_HEIGHT   = 550;
 
+$(document).ajaxSend(function(event, xhr, settings) {
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    function sameOrigin(url) {
+        // url could be relative or scheme relative or absolute
+        var host = document.location.host; // host + port
+        var protocol = document.location.protocol;
+        var sr_origin = '//' + host;
+        var origin = protocol + sr_origin;
+        // Allow absolute or scheme relative URLs to same origin
+        return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+            (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+            // or any other URL that isn't scheme relative or absolute i.e relative.
+            !(/^(\/\/|http:|https:).*/.test(url));
+    }
+    function safeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+    }
+});
+
+function saveMap(){
+	var map = {};
+	map.tilemap = $.tiles.tilemap();
+	map.entities = $.entities.entitiesMap();
+	map.actuators = {};
+	$.each($.entities.getActuators(), function(owner, triggers){
+		map.actuators[owner] = {};
+		$.each(triggers, function(trigger, actuators){
+			map.actuators[owner][trigger] = [];
+			$.each(actuators, function(key, actuator){
+				map.actuators[owner][trigger][key] = {behaviour:actuator.behaviour, target:actuator.target.name};
+			});
+		});
+	});
+	map.name = $("#mapName").val();
+
+	var mapText = JSON.stringify(map);
+	alert (mapText);
+	$.post("/editor/savemap/", {map:mapText});
+}
+
 function setToolTile(tile){
 	if(!tile){
 		$("#options").html("<div id='tilesMap'></div>");
@@ -40,21 +98,14 @@ function setToolEntity(entity){
 		if(entity !== 'delete'){
 			var ent = $.entities.getEntityTypes()[entity];
 			ent.name = entity;
-			$.tool.changeToolEntityBrush(ent);
-			$(".highlight").animate({opacity:0.5});
-			$(".highlight").removeClass('highlight')
-			$("#se"+entity).addClass('highlight');		
-			$("#se"+entity).animate({opacity:1});
-			
 		}
-		else {
-			$.tool.changeToolEntityBrush({type:'delete'});
-			$(".highlight").animate({opacity:0.5});
-			$(".highlight").removeClass('highlight')
-			$("#sedelete").addClass('highlight');		
-			$("#sedelete").animate({opacity:1});
+		else var ent= {type:'delete'};
+		$.tool.changeToolEntityBrush(ent);
+		$(".highlight").animate({opacity:0.5});
+		$(".highlight").removeClass('highlight')
+		$("#se"+entity).addClass('highlight');		
+		$("#se"+entity).animate({opacity:1});	
 		}
-	}
 };
 
 function setActuatorTool(actuators, entName){
@@ -65,18 +116,18 @@ function setActuatorTool(actuators, entName){
 	else
 		$.tool.changeToolActuators(actuators, entName);
 	$("#actuatorTool").empty();
-	$.each(actuators, function(key, value){
-		var id = 'sa' + key;
-		$("#actuatorTool").append("<div id='"+id+"' style:'float:center'><h4>"+key+ "</h4></div>");
+	$.each(actuators, function(trigger, value){
+		var id = 'sa' + trigger;
+		$("#actuatorTool").append("<div id='"+id+"' style:'float:center'><h4>"+trigger+ "</h4></div>");
 		$("#"+id).append("<div id='"+id+"new'><div id='"+id+"newimg' style='float:left; " +
 				"background-image:url(/static/icons/defaultent.png); height:32; width:32'/> To create a new action " +
 				"drop a entity from the map to the icon</div>");
-		$.each(actuators[key], function(k, v){
+		$.each(actuators[trigger], function(k, v){
 			$("#"+id).append("<div id='"+id+k+"'>" +
 				"<div id='"+id+k+"img' ent='"+v.target.xy+"' style='float:left; " +
 				"background-image:url("+v.target.sprite+"); width:32; height:32'/>" +
 				"<select id='"+id+k+"beh' style='float:left'> </select>" +
-				"<div id='"+id+k+"rem' onclick='removeActuator("+k+",\""+entName+"\", \""+key+"\")'" +
+				"<div id='"+id+k+"rem' onclick='removeActuator("+k+",\""+entName+"\", \""+trigger+"\")'" +
 				"style='float:left; background-image:url(/static/tiles/tool.gif); width:32; height:32'/>" +
 				"</div> <br>");
 				var selector = $("#"+id+k+"beh");
@@ -85,21 +136,26 @@ function setActuatorTool(actuators, entName){
 				});
 				selector.val(v.behaviour);
 				selector.change(function(){
-					editActuatorTool({behaviour:selector.val(), trigger:key, owner:entName, 
+					editActuatorTool({behaviour:selector.val(), trigger:trigger, owner:entName, 
 					target:$.entities.get($("#"+id+k+"img").attr('ent'))}, k);
 				});
 		});
 		$("#"+id+"new").droppable({accept:'.entity', activeClass:'entOver', drop: function(event, ui){
-				editActuatorTool({trigger: key, owner: entName, target:$.entities.get(ui.helper.attr('ent'))}, false);		}});
+				editActuatorTool({trigger: trigger, owner: entName, target:$.entities.get(ui.helper.attr('ent'))}, false);		}});
 	});	
 };
 
 function editActuatorTool(actuator, overwrite){
 	var acts = $.entities.getActuators()[actuator.owner][actuator.trigger];
-	if(overwrite || overwrite === 0)
-		acts[overwrite] = {behaviour:actuator.behaviour, target:actuator.target};	
-	else 
-		acts.push({target:actuator.target, behaviour:actuator.behaviour});
+	if (!actuator.behaviour)
+		actuator.behaviour = actuator.target.behaviours[0];
+	var ind;
+	if (overwrite || overwrite === 0) ind = overwrite;
+	else ind = acts.length;
+	acts[ind] = {behaviour:actuator.behaviour, target:actuator.target};	
+	actuator.target.deleted = function(){
+		removeActuator(ind, actuator.owner, actuator.trigger);
+	};
 	setActuatorTool();
 };
 
@@ -122,8 +178,6 @@ $.tool = function(){
 				return { name: that.name,
 						 type: that.type,
 						 sprite: that.sprite,
-						 triggers: that.triggers,
-						 behaviours: that.behaviours,
 						 xy: that.xy				
 					   };
 			},
@@ -133,9 +187,11 @@ $.tool = function(){
 		}
 	}();
 	var toolActuators = function(){
-		var entName;
+		var entName = '';
 		return {
 			get: function(){
+				if(entName === '')
+					return {actuators:{}, entName:entName};
 				return {actuators:$.entities.getActuators()[entName], entName: entName};
 			},
 			set: function(actuators, entiName){
@@ -156,6 +212,7 @@ $.tool = function(){
 			if(current== 'Tile')
 				$.tiles.changeTile(tx,ty, toolTile);
 			else if(current=='Entity')
+			
 				$.entities.changeEntity(tx, ty, toolEntityBrush.get());
 		},
 		changeToolTile: function(tile){
@@ -176,7 +233,6 @@ $.tool = function(){
 	}		
 }();
 
-
 $.entities = function(){
 	var entis = {};
 	var actuators = {};
@@ -191,19 +247,21 @@ $.entities = function(){
 	};
 	return {
 		loadEntites: function(entities){
-				$.each(entities, function(key, value){
-					value.type = key;
-					entityTypes[key] = value;
-  					entitiesAnimations[key] = new $.gameQuery.Animation(
-  					  {imageURL: value.sprite, numberofFrame:1, delta:32,
-  					   distance:0, rate:100, type: $.gameQuery.ANIMATION_HORIZONTAL |
-  					   $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
-				});
-				return entitiesAnimations;
+			$.each(entities, function(key, value){
+				value.type = key;
+				entityTypes[key] = value;
+  				entitiesAnimations[key] = new $.gameQuery.Animation(
+  				  {imageURL: value.sprite, numberofFrame:1, delta:32,
+  				   distance:0, rate:100, type: $.gameQuery.ANIMATION_HORIZONTAL |
+  				   $.gameQuery.ANIMATION_MULTI, offsetx: 0, offsety: 32});
+			});
+			return entitiesAnimations;
 		},
 		add : function(entity, x, y){
-			entity.name = entity.type + 'at' +x+''+y;
-			entity.xy = ""+x+","+y;
+			entity.name = entity.type + 'at' +x+'-'+y;
+			entity.x = x; entity.y = y;
+			entity.xy = entity.x+","+entity.y;
+			entity.behaviours = entityTypes[entity.type].behaviours;
 			$("#actors").addSprite(entity.name, {
 				animation: entitiesAnimations[entity.type],
   				posx:(x-1)*32, posy:(y-1)*32, classes:'entity'});
@@ -225,11 +283,17 @@ $.entities = function(){
 		},
 		remove: function(entityId, posx, posy){
 			$("#"+entityId).remove();
-			entis[""+posx+","+posy] = null;
+			try { entis[""+posx+","+posy].deleted(); }
+			catch(err){}
+			delete entis[""+posx+","+posy];
+			delete actuators[entityId];
+			setActuatorTool();
 		},
+		// pos: new position - o: old position
 		move: function(entityName, posx, posy, ox, oy){
 			var ent = entis[""+ox+","+oy];
-			ent.xy = ""+posx+""+posy;
+			ent.x = posx; ent.y = posy;
+			ent.xy = ""+ent.x+","+ent.y;
 			this.remove(entityName, ox, oy);
 			this.add(ent, posx, posy);
 		},
@@ -246,10 +310,12 @@ $.entities = function(){
   				this.remove(e.name, x, y);
   			else
   				setActuatorTool(actuators[e.name], e.name);
-
 		},
 		getActuators: function(){
 			return actuators;
+		},
+		entitiesMap: function(){
+			return entis;
 		}
 	}
 }();
@@ -303,7 +369,6 @@ var loadMap = function (map){
     
     $.playground().addGroup("actors");
     $.each(ents, function(key, value){
-    	value.name = key;
   		$.entities.add(value, value.posx, value.posy);
     });
    	})});
@@ -313,7 +378,7 @@ var loadMap = function (map){
 $(function(){
 	var mapJSON;	
 	var req = new XMLHttpRequest();
-	req.open('GET', 'http://127.0.0.1:8080/static/maps/test.json', false);
+	req.open('GET', 'http://127.0.0.1:8080/static/maps/MAPPY.json', false);
 	req.send(null);
 	if(req.status == 200)
 		mapJSON = req.responseText;

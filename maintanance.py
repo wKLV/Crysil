@@ -1,4 +1,5 @@
-from game.models import Tile, EntityType
+from game.models import Tile, EntityType, Map
+from entityCode import jsonMessages
 import settings
 
 def parseEntity(entity):
@@ -47,7 +48,12 @@ def entities():
     text += '}'
     file = open(settings.CRYSIL_PATH + 'media/pj/entities.json', 'w')
     file.write(text)
-    
+
+def parseMaps():
+    for e in Map.objects.all():
+        jsonMessages.convertMapToJSON(e.name)
+        
 if __name__=='__main__':
     tiles()
     entities()
+    parseMaps()
