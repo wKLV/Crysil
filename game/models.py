@@ -1,7 +1,8 @@
 from django.db import models
 import settings
 from  django.core.exceptions import ObjectDoesNotExist
-
+from django.forms.models import ModelForm
+import django.forms as forms
 #
 # HOW THE GAME IS
 #
@@ -150,6 +151,111 @@ class MissionStateType(models.Model):
     name = models.CharField(max_length=25)
     posibilites = models.ManyToManyField(State)
 
+class AptitudeType(models.Model):
+    """Classification of the aptitudes
+    """
+    name = models.CharField(max_length=25)
+    description = models.CharField(max_length=500)
+    def __unicode__(self):
+        return self.name
+    
+class AptitudeTypeForm(ModelForm):
+    description = forms.CharField(widget=forms.Textarea)
+    class Meta:
+        model = AptitudeType
+
+class Aptitude(models.Model):
+    """Ability of a character to do something. It is used in combat
+    
+    It can be calculated using other aptitudes or be primary and have one value.
+    """
+    name = models.CharField(max_length=25)
+    description = models.CharField(max_length=500)
+    type = models.ForeignKey(AptitudeType)
+    def __unicode__(self):
+        return self.name
+    def value(self):
+        return self._value
+
+class PrimaryAptitude(Aptitude):
+    """An aptitude that has a value
+    
+    It can be increased through leveling
+    """
+    def _value(self):
+        return False
+    
+class PrimaryAptitudeForm(ModelForm):
+    description = forms.CharField(widget=forms.Textarea)
+    class Meta:
+        model = PrimaryAptitude
+
+class AptitudeDependence(models.Model):
+    """A single part of an aptitude
+    
+    It is calculated by scaling an aptitude with a value named normalizer
+    """
+    aptitude = models.ForeignKey(Aptitude)
+    normalizer = models.IntegerField() # /1000 Ex: 125 is 12.5% or 0.125
+    parent = models.ForeignKey(Aptitude, related_name='parent')
+    def __unicode__(self):
+        return unicode(aptitude)+' by:'+str(normalizer)
+
+class DerivativeAptitude(Aptitude):
+    """An aptitude which value is calculated by adding other aptitudes
+    """
+    def _value(self):
+        v = 0
+        for i in AptitudeDependence.objects.filter(parent=self.name):
+            v += i.aptitude.value*i.normalizer/1000
+        return v
+
+
+class DerivativeAptitudeForm(ModelForm):
+     dependences = None # TODO
+     class Meta:
+        model = DerivativeAptitude
+
+class PowerCombat(models.Model):
+    """An ability that may be used in combat to hurt or heal
+    
+    Its impact is calculated using the following formula:
+    x is the aptitude of the power
+    2*A*x+ B*x/2 + C*x/10
+    where A B C are the constants of the power that decides how powerful it is
+    Then it is randomized by D (in /1000) so it can be more or less effective
+    It also consumes some quantity of mana or whatever
+    """
+    aptitude = models.ForeignKey(Aptitude)
+    mana = models.IntegerField()
+    a = models.IntegerField()
+    b = models.IntegerField()
+    c = models.IntegerField()
+    d = models.IntegerField() # /1000 Ex: 100 is 10% or 0.1
+    def _name(self):
+        return aptitude.name
+    def __unicode___(self):
+        return self._name()
+
+class AptitudeInstance(models.Model):
+    aptitude = models.ForeignKey(Aptitude)
+    value = models.IntegerField()
+    def value(self):
+        if not aptitude.value(): 
+            return aptitude.value()
+        else:
+            return self.value
+    def __unicode___(self):
+        return unicode(self.aptitude)
+
+class Combatant(models.Model):
+    """A entity that takes side in a combat using PowerCombats
+    """
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=500)
+    aptitudes = models.ManyToManyField(AptitudeInstance)
+    powersCombat = models.ManyToManyField(PowerCombat)
+    
 #
 # HOW THE GAME IS SAVED
 #
@@ -159,7 +265,7 @@ class Game(models.Model):
     
     For example, User A creates a game to play Episode E with a
     sorcerer, and User B creates one to play with a warrior.
-    They keep the game in the followinfg episodes, but one day
+    They keep the game in the following episodes, but one day
     A creates a new game to play with a warrior
     """
     name = models.CharField(max_length=30)

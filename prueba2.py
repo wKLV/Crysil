@@ -1,3 +1,5 @@
-from game import views, models
+from game import models
+from django.core import serializers
 
-views.response (None, 1, 'press')
+with open("data.xml", "w") as out:
+    serializers.get_serializer("json")().serialize(models.EntityType.objects.all(), stream=out)

@@ -1,6 +1,6 @@
 import password
 
-CRYSIL_PATH = '/home/cesar/crysil/crysil/'
+CRYSIL_PATH = '/pjs/crysil/'
 
 # Django settings for crysil project.
 

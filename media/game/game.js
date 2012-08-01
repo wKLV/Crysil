@@ -244,7 +244,7 @@ var loadMap = function (map){
 $(function(){
 	var mapJSON;	
 	var req = new XMLHttpRequest();
-	req.open('GET', 'http://127.0.0.1:8080/static/maps/MAPPY.json', false);
+	req.open('GET', 'http://127.0.0.1:8080/static/maps/thingy.js', false);
 	req.send(null);
 	if(req.status == 200)
 		mapJSON = req.responseText;
