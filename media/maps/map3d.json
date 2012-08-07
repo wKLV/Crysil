@@ -1,0 +1,16 @@
+{"floor":[
+	{"tile":"t.jpg", "pos":[0,0,0], "size":[25,0.1,50]}
+	],
+"entity":[
+	{"name":"cube", "geometry":"cubo2.js", "pos":[-2, 0, -4], "size":[1,1,1]},
+	{"name":"puerta", "geometry":"puerta2.js", "pos":[-10,0, 10], "size":[1,1,1]}
+],
+"actors":[
+	{"name":"actor secundario BOB", "geometry":"centinela.js", "pos":[2,0, 4], "size":[1,1,1]},
+	{"name":"prota", "geometry":"prota.js", "pos":[0,0,0], "size":[1,1,1], "focus":true}
+],
+"ambientlight":{"color":16777215},
+"directionallight":{"color":16777215, "direction":[0, 17, -15]},
+"spotlights":[
+]
+}

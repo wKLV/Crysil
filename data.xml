@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "game.entitytype", "fields": {"behaviours": [1], "triggers": [1], "name": "switch", "sprite": "switch.gif"}}, {"pk": 2, "model": "game.entitytype", "fields": {"behaviours": [2], "triggers": [], "name": "lamp", "sprite": "lamp.png"}}]

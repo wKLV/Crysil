@@ -1,0 +1,48 @@
+<html>
+	<script type="text/javascript" src="/static/game/jquery.js"></script>
+	<script type="text/javascript" src="/static/game/jquery-ui-1.8.14.custom.min.js"></script>
+<h1>Aptitude Editor</h1>
+
+<script type="text/javascript">
+function hideshow(div){
+	if(div.is(":visible")) div.hide('slide', {direction:'up'}, 1000);
+	else div.show('slide', {direction:'up'}, 1000)
+}
+	$(document).ready(function(){
+		var pathname = window.location.pathname
+		var i = parseInt(pathname.slice(pathname.search('aptitudes/')+10))
+		switch (i){
+			case 1: hideshow($("#primapt")); hideshow($('#derapt')); break;
+			case 2: hideshow($("#aptype")); hideshow($('#derapt')); break;
+			case 3: hideshow($("#primapt")); hideshow($("#aptype")); break;
+		}
+	});
+</script>
+
+<h2 onclick="hideshow($('#aptype'))">Aptitude Types</h2>
+<form action="/editor/aptitudes/1/" method="post" id="aptype"> {% csrf_token %}
+	{{ aptypes.management_form }}
+	{% for o in aptypes %}
+		{{o}} <br/>
+	{% endfor %}
+	<input type="submit" value="Update"/>
+</form>
+
+<h2 onclick="hideshow($('#primapt'))">Primary Aptitudes</h2>
+<form action="/editor/aptitudes/2/" method="POST" id="primapt"> {% csrf_token %}
+	{{ primapts.management_form }}
+	{% for o in primapts %}
+		{{o}} <br/>
+	{% endfor %}
+	<input type="submit" value="Update"/>
+</form>
+
+<h2 onclick="hideshow($('#derapt'))">Derivative Aptitudes</h2>
+<form action="/editor/aptitudes/3/" method="POST" id="derapt"> {% csrf_token %}
+	{{ derapts.management_form }}
+	{% for o in derapts %}
+		{{o}} <br/>
+	{% endfor %}
+	<input type="submit" value="Update"/>
+</form> 
+</html>
