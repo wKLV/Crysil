@@ -2,15 +2,20 @@
 	{"tile":"t.jpg", "pos":[0,0,0], "size":[25,0.1,50]}
 	],
 "entity":[
-	{"name":"cube", "geometry":"cubo2.js", "pos":[-2, 0, -4], "size":[1,1,1]},
-	{"name":"puerta", "geometry":"puerta2.js", "pos":[-10,0, 10], "size":[1,1,1]}
+	{"name":"cube", "geometry":"cubo2.dae", "pos":[8, 0, 6], "size":[5,5,5],"actions":{}},
+	{"name":"puerta", "geometry":"puerta2.dae", "pos":[3,0, -5], "size":[5,5,5], "actions":{
+		"mousedown":"animate-open", "mouseup":"animate-close" }
+	},
+	{"name":"interuptor", "geometry":"interruptor.dae", "pos":[0, 0, -9], "size":[5,5,5],"actions":{"mousedown":"animate-open", "mouseup":"animate-close" }}
 ],
 "actors":[
-	{"name":"actor secundario BOB", "geometry":"centinela.js", "pos":[2,0, 4], "size":[1,1,1]},
-	{"name":"prota", "geometry":"prota.js", "pos":[0,0,0], "size":[1,1,1], "focus":true}
+	{"name":"actor secundario BOB", "geometry":"centinela.dae", "pos":[-6,0,14], "size":[5,5,5],"actions":{}},
+	{"name":"prota", "geometry":"prota.dae", "pos":[0,0,0], "size":[5,5,5], "focus":true,"actions":{}},
+	{"name":"monster", "geometry":"monster.dae", "pos":[0,0,0], "size":[5,5,5], "actions":{
+		"mousedown":"animate-open", "mouseup":"animate-close" }}
 ],
 "ambientlight":{"color":16777215},
-"directionallight":{"color":16777215, "direction":[0, 17, -15]},
+"directionallight":{"color":16777215, "direction":[-10, 10, -30]},
 "spotlights":[
 ]
 }
