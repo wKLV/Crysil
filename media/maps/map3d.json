@@ -1,21 +1,21 @@
 {"floor":[
-	{"tile":"t.jpg", "pos":[0,0,0], "size":[25,0.1,50]}
+	{"tile":"t.png", "pos":[0,0,0], "size":[25,50,0.1], "repetition":[8,16]}
 	],
 "entity":[
-	{"name":"cube", "geometry":"cubo2.dae", "pos":[8, 0, 6], "size":[5,5,5],"actions":{}},
-	{"name":"puerta", "geometry":"puerta2.dae", "pos":[3,0, -5], "size":[5,5,5], "actions":{
+	{"name":"cube", "geometry":"cubo2.js", "pos":[8, 6, 0], "size":[5,5,5],"actions":{}},
+	{"name":"puerta", "geometry":"Puerta.js", "pos":[3,-5, 0], "size":[5,5,5], "actions":{
 		"mousedown":"animate-open", "mouseup":"animate-close" }
 	},
-	{"name":"interuptor", "geometry":"interruptor.dae", "pos":[0, 0, -9], "size":[5,5,5],"actions":{"mousedown":"animate-open", "mouseup":"animate-close" }}
+	{"name":"interuptor", "geometry":"interruptor-mano.js", "pos":[0, -9, 0], "size":[5,5,5],"actions":{"mousedown":"animate-open", "mouseup":"animate-close" }},
+	{"name":"interuptor2", "geometry":"interruptor-mano.js", "pos":[5, 9, 0], "size":[5,5,5],"actions":{"mousedown":"animate-open", "mouseup":"animate-close" }},
+	{"name":"presion", "geometry":"presion.2.js", "pos":[20, 30, 0 ], "size":[5,5,5],"actions":{"mousedown":"animate-open", "mouseup":"animate-close" }}
 ],
 "actors":[
-	{"name":"actor secundario BOB", "geometry":"centinela.dae", "pos":[-6,0,14], "size":[5,5,5],"actions":{}},
-	{"name":"prota", "geometry":"prota.dae", "pos":[0,0,0], "size":[5,5,5], "focus":true,"actions":{}},
-	{"name":"monster", "geometry":"monster.dae", "pos":[0,0,0], "size":[5,5,5], "actions":{
-		"mousedown":"animate-open", "mouseup":"animate-close" }}
+	{"name":"actor secundario BOB", "geometry":"centinela.js", "pos":[-6,14,0], "size":[5,5,5],"actions":{}},
+	{"name":"prota", "geometry":"prota.cesar.js", "pos":[0,-0,0], "size":[5,5,5], "focus":true,"actions":{}}
 ],
 "ambientlight":{"color":16777215},
-"directionallight":{"color":16777215, "direction":[-10, 10, -30]},
+"directionallight":{"color":16777215, "direction":[-10, -30, 10]},
 "spotlights":[
 ]
 }

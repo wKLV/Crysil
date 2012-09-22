@@ -5,44 +5,30 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.62.0 r44136</authoring_tool>
     </contributor>
-    <created>2012-08-08T23:06:45</created>
-    <modified>2012-08-08T23:06:45</modified>
+    <created>2012-08-10T19:28:50</created>
+    <modified>2012-08-10T19:28:50</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
-  <library_cameras>
-    <camera id="Camera-camera" name="Camera.001">
-      <optics>
-        <technique_common>
-          <perspective>
-            <xfov sid="xfov">49.13434</xfov>
-            <aspect_ratio>1.777778</aspect_ratio>
-            <znear sid="znear">0.1</znear>
-            <zfar sid="zfar">100</zfar>
-          </perspective>
-        </technique_common>
-      </optics>
-    </camera>
-  </library_cameras>
   <library_images>
-    <image id="plataforma_png" name="plataforma_png">
-      <init_from>../Texturas/Interruptor/Presion/plataforma.png</init_from>
+    <image id="presionplataforma_png" name="presionplataforma_png">
+      <init_from>texts/presionplataforma.png</init_from>
     </image>
-    <image id="tile_png" name="tile_png">
-      <init_from>../Texturas/Interruptor/Presion/tile.png</init_from>
+    <image id="presion_png" name="presion_png">
+      <init_from>texts/presion.png</init_from>
     </image>
   </library_images>
   <library_effects>
     <effect id="Material-effect">
       <profile_COMMON>
-        <newparam sid="plataforma_png-surface">
+        <newparam sid="presionplataforma_png-surface">
           <surface type="2D">
-            <init_from>plataforma_png</init_from>
+            <init_from>presionplataforma_png</init_from>
           </surface>
         </newparam>
-        <newparam sid="plataforma_png-sampler">
+        <newparam sid="presionplataforma_png-sampler">
           <sampler2D>
-            <source>plataforma_png-surface</source>
+            <source>presionplataforma_png-surface</source>
           </sampler2D>
         </newparam>
         <technique sid="common">
@@ -54,7 +40,7 @@
               <color sid="ambient">0 0 0 1</color>
             </ambient>
             <diffuse>
-              <texture texture="plataforma_png-sampler" texcoord="UVMap"/>
+              <texture texture="presionplataforma_png-sampler" texcoord="UVMap"/>
             </diffuse>
             <index_of_refraction>
               <float sid="index_of_refraction">1</float>
@@ -71,14 +57,14 @@
     </effect>
     <effect id="Material_001-effect">
       <profile_COMMON>
-        <newparam sid="tile_png-surface">
+        <newparam sid="presion_png-surface">
           <surface type="2D">
-            <init_from>tile_png</init_from>
+            <init_from>presion_png</init_from>
           </surface>
         </newparam>
-        <newparam sid="tile_png-sampler">
+        <newparam sid="presion_png-sampler">
           <sampler2D>
-            <source>tile_png-surface</source>
+            <source>presion_png-surface</source>
           </sampler2D>
         </newparam>
         <technique sid="common">
@@ -90,7 +76,7 @@
               <color sid="ambient">0 0 0 1</color>
             </ambient>
             <diffuse>
-              <texture texture="tile_png-sampler" texcoord="UVMap"/>
+              <texture texture="presion_png-sampler" texcoord="UVMap"/>
             </diffuse>
             <index_of_refraction>
               <float sid="index_of_refraction">1</float>
@@ -319,7 +305,7 @@
         </technique_common>
       </source>
       <source id="Plataforma_location_Z-output">
-        <float_array id="Plataforma_location_Z-output-array" count="2">0 -3.5</float_array>
+        <float_array id="Plataforma_location_Z-output-array" count="2">0 -2.961221</float_array>
         <technique_common>
           <accessor source="#Plataforma_location_Z-output-array" count="2" stride="1">
             <param name="Z" type="float"/>
@@ -335,7 +321,7 @@
         </technique_common>
       </source>
       <source id="Plataforma_location_Z-intangent">
-        <float_array id="Plataforma_location_Z-intangent-array" count="4">-0.6482092 0 1.018458 -3.5</float_array>
+        <float_array id="Plataforma_location_Z-intangent-array" count="4">-0.6489101 0 1.017757 -2.961221</float_array>
         <technique_common>
           <accessor source="#Plataforma_location_Z-intangent-array" count="2" stride="2">
             <param name="X" type="float"/>
@@ -344,7 +330,7 @@
         </technique_common>
       </source>
       <source id="Plataforma_location_Z-outtangent">
-        <float_array id="Plataforma_location_Z-outtangent-array" count="4">0.6482092 0 2.314876 -3.5</float_array>
+        <float_array id="Plataforma_location_Z-outtangent-array" count="4">0.6489101 0 2.315577 -2.961221</float_array>
         <technique_common>
           <accessor source="#Plataforma_location_Z-outtangent-array" count="2" stride="2">
             <param name="X" type="float"/>
@@ -395,14 +381,6 @@
             </technique_common>
           </bind_material>
         </instance_geometry>
-      </node>
-      <node id="Camera" type="NODE">
-        <translate sid="location">10.38959 -14.62691 24.1464</translate>
-        <rotate sid="rotationZ">0 0 1 0</rotate>
-        <rotate sid="rotationY">0 1 0 0</rotate>
-        <rotate sid="rotationX">1 0 0 0</rotate>
-        <scale sid="scale">1 1 1</scale>
-        <instance_camera url="#Camera-camera"/>
       </node>
     </visual_scene>
   </library_visual_scenes>
