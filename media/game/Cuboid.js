@@ -32,6 +32,7 @@ CUBOID.create = function(opts){
 		cub.show.receiveShadow = true;
 		cub.show.position.set(opts.pos.x, opts.pos.y, opts.pos.z);
 		cub.type = 'floor'
+		cub.show.class = 'floor'
 	}
 	
 	function createCuboid(scene){
@@ -127,8 +128,8 @@ CUBOID.event = function(type, obj3D){
 CUBOID.checkCollisions = function(obj){
 	// Using a little trigonometry calculate a point in
 	// space 1000 units in front of our character
-	var deltaX = Math.floor(Math.sin(obj.rotation.z));
-	var deltaY = Math.floor(Math.cos(obj.rotation.z));
+	var deltaX =   Math.floor(Math.sin(obj.rotation.z));
+	var deltaY = - Math.floor(Math.cos(obj.rotation.z));
 	
 	// Fire a ray from the centre point of our character to the
 	// collision focus point

@@ -105,14 +105,23 @@ $(document).ready(function(){
 	$(document).mousedown(onDocumentEvent('mousedown'));
 	$(document).mouseup(onDocumentEvent('mouseup'));
 	$(document).mousemove(onDocumentEvent('mousemove'));
-	
-function onDocumentEvent(type) {return function( event ) {
+});
+
+function onDocumentEvent(type) {return function( event) {
 		event.preventDefault();
 	    if(type === 'mouseup') onMove= false
 	    var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0.5 );	    
 	    var ray = projector.pickingRay(vector.clone(), camera);
-	    var intersects = ray.intersectObjects( objects );
-
+	    var objectsh, objects = [], intersects;
+	    if(onMove)
+	    	objectsh = scene.select(":mesh&&.floor");
+	    else
+	    	objectsh = scene.select(":mesh");
+	    $.each(objectsh, function(i,v){
+	    	objects.push(v)
+	    });
+	    intersects = ray.intersectObjects( objects );   
+	    
 	    if ( intersects.length > 0 ) {
 		    mouseClickPos = intersects[0].point;
 	    	if (intersects[0].object.prnt)
@@ -122,7 +131,7 @@ function onDocumentEvent(type) {return function( event ) {
 	    }
 	}}; 
 	
-});
+
 
 function toScreenXY ( position, camera, jqdiv ) {
     var pos = position.clone();
@@ -133,22 +142,22 @@ function toScreenXY ( position, camera, jqdiv ) {
     return { x: ( pos.x + 1 ) * jqdiv.width() / 2 + jqdiv.offset().left,
          y: ( - pos.y + 1) * jqdiv.height() / 2 + jqdiv.offset().top };
 }
-function moveCharToMouse(position){
+function moveCharToMouse(){
 	var pjj = pj().show
 	var pjPos = toScreenXY(new THREE.Vector3(pjj.position.x,pjj.position.y, pjj.position.z), camera, $(document.body));
-
-	//pjj.eulerOrder = 'YXZ'
-	//pjj.lookAt(new THREE.Vector3(mouseClickPos.x, mouseClickPos.y, pjj.position.z ))
-	//pjj.rotation.x = -Math.PI/2
 	
-	//var v = new THREE.Vector3(mouseClickPos.x-pjj.position.x, mouseClickPos.y-pjj.position.y, mouseClickPos.z- pjj.position.z).normalize();
-	//alert('pj x:' + pjj.position.x + ', y:' + pjj.position.y + ', z:' + pjj.position.z)
-	//alert('mouse x: ' +mouseClickPos.x + ',y:' + mouseClickPos.y+',z:' + mouseClickPos.z)
-	//var b = v.clone().normalize()
-	//pjj.rotation.z = Math.acos(-v.y)
+	
+	var y = mouseClickPos.y - pjj.position.y, x = mouseClickPos.x - pjj.position.x
+	//if(Math.sqrt(x^2+y^2)<=0.00001) {onMove = false; return;}
+	pjj.rotation.z = Math.atan2(y, x) + Math.PI/2
+	pjj.rotation.x = 0;
+	pjj.rotation.y = 0;
 	
 	pjj.position.x -= (pjPos.x-mousePos.x)/1000;
 	pjj.position.y += (pjPos.y-mousePos.y)/1000;
+	
+	mouseClickPos.x -= (pjPos.x-mousePos.x)/1000;
+	mouseClickPos.y += (pjPos.y-mousePos.y)/1000;
 	
 	camera.position.x -= (pjPos.x-mousePos.x)/1000;
 	camera.position.y += (pjPos.y-mousePos.y)/1000;
