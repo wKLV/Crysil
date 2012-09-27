@@ -145,7 +145,17 @@ e.z=w[o];r.normal=e}if(m)for(c=0;c<p;c++){o=s[l++]*3;e=new THREE.Vector3;e.x=w[o
 b+2){e=a.skinIndices[b];j=a.skinIndices[b+1];d.skinIndices.push(new THREE.Vector4(e,j,0,0))}}d.bones=a.bones;d.animation=a.animation})();(function(b){if(a.morphTargets!==void 0){var c,e,j,l,k,p;c=0;for(e=a.morphTargets.length;c<e;c++){d.morphTargets[c]={};d.morphTargets[c].name=a.morphTargets[c].name;d.morphTargets[c].vertices=[];k=d.morphTargets[c].vertices;p=a.morphTargets[c].vertices;j=0;for(l=p.length;j<l;j=j+3){var m=new THREE.Vector3;m.x=p[j]*b;m.y=p[j+1]*b;m.z=p[j+2]*b;k.push(m)}}}if(a.morphColors!==
 void 0){c=0;for(e=a.morphColors.length;c<e;c++){d.morphColors[c]={};d.morphColors[c].name=a.morphColors[c].name;d.morphColors[c].colors=[];l=d.morphColors[c].colors;k=a.morphColors[c].colors;b=0;for(j=k.length;b<j;b=b+3){p=new THREE.Color(16755200);p.setRGB(k[b],k[b+1],k[b+2]);l.push(p)}}}})(e);d.computeCentroids();d.computeFaceNormals();this.hasNormals(d)&&d.computeTangents();b(d)};
 THREE.SceneLoader=function(){this.onLoadStart=function(){};this.onLoadProgress=function(){};this.onLoadComplete=function(){};this.callbackSync=function(){};this.callbackProgress=function(){}};THREE.SceneLoader.prototype.constructor=THREE.SceneLoader;
-THREE.SceneLoader.prototype.load=function(a,b){var c=this,d=new XMLHttpRequest;d.onreadystatechange=function(){if(d.readyState==4)if(d.status==200||d.status==0){var e=JSON.parse(d.responseText);c.createScene(e,b,a)}else console.error("THREE.SceneLoader: Couldn't load ["+a+"] ["+d.status+"]")};d.open("GET",a,true);d.overrideMimeType&&d.overrideMimeType("text/plain; charset=x-user-defined");d.setRequestHeader("Content-Type","text/plain");d.send(null)};
+THREE.SceneLoader.prototype.load=function(a,b){
+
+var c=this,d=new XMLHttpRequest;
+
+d.onreadystatechange=function(){
+if(d.readyState==4)
+if(d.status==200||d.status==0){
+var e=JSON.parse(d.responseText);
+c.createScene(e,b,a)
+}
+else console.error("THREE.SceneLoader: Couldn't load ["+a+"] ["+d.status+"]")};d.open("GET",a,true);d.overrideMimeType&&d.overrideMimeType("text/plain; charset=x-user-defined");d.setRequestHeader("Content-Type","text/plain");d.send(null)};
 THREE.SceneLoader.prototype.createScene=function(a,b,c){function d(a,b){return b=="relativeToHTML"?a:l+"/"+a}function e(){var a;for(m in D.objects)if(!C.objects[m]){u=D.objects[m];if(u.geometry!==void 0){if(J=C.geometries[u.geometry]){a=false;K=C.materials[u.materials[0]];(a=K instanceof THREE.ShaderMaterial)&&J.computeTangents();w=u.position;H=u.rotation;E=u.quaternion;z=u.scale;t=u.matrix;E=0;u.materials.length==0&&(K=new THREE.MeshFaceMaterial);u.materials.length>1&&(K=new THREE.MeshFaceMaterial);
 a=new THREE.Mesh(J,K);a.name=m;if(t){a.matrixAutoUpdate=false;a.matrix.set(t[0],t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10],t[11],t[12],t[13],t[14],t[15])}else{a.position.set(w[0],w[1],w[2]);if(E){a.quaternion.set(E[0],E[1],E[2],E[3]);a.useQuaternion=true}else a.rotation.set(H[0],H[1],H[2]);a.scale.set(z[0],z[1],z[2])}a.visible=u.visible;a.doubleSided=u.doubleSided;a.castShadow=u.castShadow;a.receiveShadow=u.receiveShadow;C.scene.add(a);C.objects[m]=a}}else{w=u.position;H=u.rotation;E=u.quaternion;
 z=u.scale;E=0;a=new THREE.Object3D;a.name=m;a.position.set(w[0],w[1],w[2]);if(E){a.quaternion.set(E[0],E[1],E[2],E[3]);a.useQuaternion=true}else a.rotation.set(H[0],H[1],H[2]);a.scale.set(z[0],z[1],z[2]);a.visible=u.visible!==void 0?u.visible:false;C.scene.add(a);C.objects[m]=a;C.empties[m]=a}}}function f(a){return function(b){C.geometries[a]=b;e();G=G-1;j.onLoadComplete();h()}}function g(a){return function(b){C.geometries[a]=b}}function h(){j.callbackProgress({totalModels:T,totalTextures:U,loadedModels:T-

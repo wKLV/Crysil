@@ -1,5 +1,5 @@
 staticurl = '/static';
-var pj, onMove=false, domEvent, projector = new THREE.Projector, objects = [], 
+var pj, onMove=false, shouldMove=false, domEvent, projector = new THREE.Projector, 
 mouseClickPos, animations = [], animHandler = THREE.AnimationHandler, collisions;
 ;
 $(document).ready(function(){
@@ -38,19 +38,18 @@ $(document).ready(function(){
 		spotlights = data.spotlights;
 		
 		$.each(floors, function(i,v){
-			CUBOID.create({model:false, objects:objects, scene:scene, type:'floor', 
+			CUBOID.create({model:false, scene:scene, type:'floor', 
 				text:v.tile, pos:new THREE.Vector3(v.pos[0],v.pos[1],v.pos[2]), size:v.size, repeat:v.repetition})
 		});
-		
 		$.each(entities, function(i,v){
-			CUBOID.create({model:true, objects:objects, scene:scene, type:'entity', 
+			CUBOID.create({model:true, scene:scene, type:'entity', 
 				geometry:v.geometry, pos:new THREE.Vector3(v.pos[0],v.pos[1],v.pos[2]), 
 				size:v.size, actions:v.actions})
 		});
 		
 		$.each(actors, function(i,v){
 			if(v.focus) v.focus = camera
-			var obj = CUBOID.create({model:true, objects:objects, scene:scene, type:'actor', 
+			var obj = CUBOID.create({model:true, scene:scene, type:'actor', 
 				geometry:v.geometry, pos:new THREE.Vector3(v.pos[0],v.pos[1],v.pos[2]), 
 				size:v.size, focus:v.focus, actions:v.actions})
 			if(v.focus) pj = obj
@@ -90,13 +89,40 @@ $(document).ready(function(){
 		
 		if(pj){ if(pj().show.children){
 			var pjj = pj().show;
-			if(CUBOID.checkCollisions(pjj)){
-				//onMove= false
+			var coll =  CUBOID.checkCollisions(pjj);
+			if(coll){ 
+				coll = coll.object; 
+				if(coll.prnt) coll = coll.parent;
+				var d = coll.position.z+coll.size.z-pjj.position.z
+				if (d <= pjj.size.z/2){
+					pjj.position.z += d;
+					camera.position.z += d;
+				}
+				else{
+					onMove = false;
+					shouldMove = true;
+				}
 			}
+			else if(shouldMove) onMove =true, shouldMove= false;
+			coll = CUBOID.checkFall(pjj);
+			if(coll){
+				coll = coll.object; 
+				if(coll.prnt) coll = coll.parent;
+				var d = pjj.position.z - coll.position.z - coll.size.z;
+				if(d > pjj.size.z/2) {
+					onMove= false;
+					shouldMove = true;
+				}
+				else{
+					pjj.position.z -= d;
+					camera.position.z -= d;
+				}
+			}
+				
 		}}
 		renderer.render(scene, camera);
 		stats.update()
-		if(onMove) moveCharToMouse()
+		moveCharToMouse()
 		
 		requestAnimationFrame(render);
 	}
@@ -143,22 +169,25 @@ function toScreenXY ( position, camera, jqdiv ) {
          y: ( - pos.y + 1) * jqdiv.height() / 2 + jqdiv.offset().top };
 }
 function moveCharToMouse(){
-	var pjj = pj().show
-	var pjPos = toScreenXY(new THREE.Vector3(pjj.position.x,pjj.position.y, pjj.position.z), camera, $(document.body));
-	
-	
-	var y = mouseClickPos.y - pjj.position.y, x = mouseClickPos.x - pjj.position.x
-	//if(Math.sqrt(x^2+y^2)<=0.00001) {onMove = false; return;}
-	pjj.rotation.z = Math.atan2(y, x) + Math.PI/2
-	pjj.rotation.x = 0;
-	pjj.rotation.y = 0;
-	
-	pjj.position.x -= (pjPos.x-mousePos.x)/1000;
-	pjj.position.y += (pjPos.y-mousePos.y)/1000;
-	
-	mouseClickPos.x -= (pjPos.x-mousePos.x)/1000;
-	mouseClickPos.y += (pjPos.y-mousePos.y)/1000;
-	
-	camera.position.x -= (pjPos.x-mousePos.x)/1000;
-	camera.position.y += (pjPos.y-mousePos.y)/1000;
+	if(pj) if(pj().show.children) if(mouseClickPos){
+		var pjj = pj().show
+		var pjPos = toScreenXY(new THREE.Vector3(pjj.position.x,pjj.position.y, pjj.position.z), camera, $(document.body));
+		
+		var y = mouseClickPos.y - pjj.position.y, x = mouseClickPos.x - pjj.position.x
+		//if(Math.sqrt(x^2+y^2)<=0.00001) {onMove = false; return;}
+		pjj.rotation.z = Math.atan2(y, x) + Math.PI/2
+		pjj.rotation.x = 0;
+		pjj.rotation.y = 0;
+		if(shouldMove) CUBOID.checkCollisions(pjj)
+		if(onMove){
+			pjj.position.x -= (pjPos.x-mousePos.x)/1000;
+			pjj.position.y += (pjPos.y-mousePos.y)/1000;
+			
+			mouseClickPos.x -= (pjPos.x-mousePos.x)/1000;
+			mouseClickPos.y += (pjPos.y-mousePos.y)/1000;
+			
+			camera.position.x -= (pjPos.x-mousePos.x)/1000;
+			camera.position.y += (pjPos.y-mousePos.y)/1000;
+		}
+	}
 }
